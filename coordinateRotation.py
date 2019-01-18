@@ -1,7 +1,7 @@
 
 import sys
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 def main(argv):
 
@@ -20,6 +20,7 @@ def main(argv):
     CAMERA_EASTING = 10000
     CAMERA_NORTHING = 5000
     CAMERA_ELEVATION = 1000
+
     T = [
     [1, 0, 0,-CAMERA_EASTING],
     [0, 1, 0,-CAMERA_NORTHING],
@@ -29,7 +30,7 @@ def main(argv):
 
     Ryaw = [
     [cosAz, -sinAz, 0, 0],
-    [sinAz, cosAz, 0 , 0],
+    [sinAz, cosAz, 0, 0],
     [0, 0, 1, 0]
     ]
 
@@ -45,12 +46,35 @@ def main(argv):
     [sinRoll, 0 , cosRoll]
     ]
 
+    Raxis = [
+    [1, 0, 0],
+    [0, 0, -1],
+    [0, 1 , 0]
+    ]
+    #C = Raxis, Rroll, Rpitch, Ryaw, T
+    xList = []
+    yList = []
     with open(inFile) as file:
         for p in file:
                 p = p.strip()
                 p = p.split(" ")
-                x = float(p[0])/float(p[2])
-                y = float(p[1])/float(p[2])
-        print(T,Ryaw, Rpitch, Rroll)
+                x = float(p[0])
+                y = float(p[1])
+                z = float(p[2])
+                point = [x,y,z,1]
+
+                translated = np.matmul(T,point)
+                yawed = np.matmul(Ryaw,translated)
+                pitched = np.matmul(Rpitch,yawed)
+                rolled = np.matmul(Rroll,pitched)
+                swapped = np.matmul(Raxis,rolled)
+
+                xList.append(swapped[0])
+                yList.append(swapped[1])
+
+    plt.scatter(xList,yList, c=yList, s=100)
+    plt.gray()
+
+    plt.show()
 if __name__=='__main__':
   main(sys.argv[1:])
